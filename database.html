@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Database - Kumbung Jamur</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        body { 
+            background-color: #f0f8ff; 
+            color: #333; 
+            line-height: 1.6; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        header { 
+            background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+            color: white; 
+            padding: 1rem 0; 
+            text-align: center; 
+            border-radius: 0 0 20px 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        nav { 
+            background-color: #ffffff; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        }
+        nav ul { 
+            display: flex; 
+            justify-content: center; 
+            list-style: none; 
+            padding: 15px; 
+        }
+        nav ul li { 
+            margin: 0 15px; 
+        }
+        nav ul li a { 
+            text-decoration: none; 
+            color: #2E7D32; 
+            font-weight: 600; 
+            padding: 10px 20px; 
+            border-radius: 30px; 
+            transition: all 0.3s ease; 
+        }
+        nav ul li a:hover, 
+        nav ul li a.active { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+        .card h3 { 
+            color: #2E7D32; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 10px; 
+        }
+        .card h3 i { 
+            font-size: 1.4rem; 
+        }
+        .controls { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+        }
+        .controls select, 
+        .controls input { 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #ddd; 
+        }
+        .controls button { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: background 0.3s; 
+        }
+        #applyFilter, 
+        #exportData { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        #applyFilter:hover, 
+        #exportData:hover { 
+            background-color: #388E3C; 
+        }
+        #deleteHistory { 
+            background-color: #f44336; 
+            color: white; 
+        }
+        #deleteHistory:hover { 
+            background-color: #d32f2f; 
+        }
+        #deleteSelected { 
+            background-color: #ff9800; 
+            color: white; 
+        }
+        #deleteSelected:hover { 
+            background-color: #e68a00; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+        }
+        th, td { 
+            padding: 12px 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd; 
+        }
+        th { 
+            background-color: #f5f5f5; 
+            font-weight: 600; 
+            color: #2E7D32; 
+        }
+        tr:hover { 
+            background-color: #f9f9f9; 
+        }
+        .status-badge { 
+            display: inline-block; 
+            padding: 5px 10px; 
+            border-radius: 15px; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+        }
+        .status-badge.on { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        .status-badge.off { 
+            background-color: #f44336; 
+            color: white; 
+        }
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            margin-top: 20px; 
+            gap: 10px; 
+        }
+        .pagination button { 
+            padding: 8px 15px; 
+            background-color: white; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .pagination button.active { 
+            background-color: #4CAF50; 
+            color: white; 
+            border-color: #4CAF50; 
+        }
+        footer { 
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 20px; 
+            color: #666; 
+            border-top: 1px solid #ddd; 
+        }
+        .select-all-container { 
+            margin-bottom: 10px; 
+        }
+        .delete-actions { 
+            margin-top: 20px; 
+            display: flex; 
+            gap: 10px; 
+        }
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-title {
+            color: #f44336;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-cancel {
+            background-color: #f0f0f0;
+        }
+        .modal-confirm {
+            background-color: #f44336;
+            color: white;
+        }
+        .no-data-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Modal Konfirmasi Hapus -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h3 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Konfirmasi Penghapusan</h3>
+            <p id="modalMessage">Apakah Anda yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="modal-actions">
+                <button class="modal-btn modal-cancel" id="modalCancel">Batal</button>
+                <button class="modal-btn modal-confirm" id="modalConfirm">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-database"></i> Riwayat Database Kumbung Jamur</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Beranda</a></li>
+                <li><a href="status.html"><i class="fas fa-heart-pulse"></i> Status Real-time</a></li>
+                <li><a href="database.html" class="active"><i class="fas fa-database"></i> Riwayat Database</a></li>
+            </ul>
+        </nav>
+
+        <div class="card">
+            <h3><i class="fas fa-filter"></i> Filter Data</h3>
+            <div class="controls">
+                <select id="dateFilter">
+                    <option value="7">7 Hari Terakhir</option>
+                    <option value="3">3 Hari Terakhir</option>
+                    <option value="1">24 Jam Terakhir</option>
+                    <option value="all">Semua Data</option>
+                </select>
+                
+                <input type="date" id="startDate">
+                <input type="date" id="endDate">
+                
+                <button id="applyFilter"><i class="fas fa-check"></i> Terapkan</button>
+                <button id="exportData"><i class="fas fa-file-export"></i> Export CSV</button>
+                <button id="deleteHistory"><i class="fas fa-trash"></i> Hapus Semua Riwayat</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-table"></i> Data Historis</h3>
+            
+            <div class="select-all-container">
+                <input type="checkbox" id="selectAll"> 
+                <label for="selectAll">Pilih Semua</label>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Waktu</th>
+                            <th>Suhu (°C)</th>
+                            <th>Kelembaban (%)</th>
+                            <th>Soil 1</th>
+                            <th>Soil 2</th>
+                            <th>Soil Rata²</th>
+                            <th>Kipas</th>
+                            <th>Pompa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="no-data-message" id="noDataMessage" style="display: none;">
+                Tidak ada data yang ditemukan
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- Pagination akan diisi oleh JavaScript -->
+            </div>
+            
+            <div class="delete-actions">
+                <button id="deleteSelected"><i class="fas fa-trash-alt"></i> Hapus Data Terpilih</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="container">
+        <p>IoT Kumbung Jamur &copy; 2023 | Data diambil dari Firebase Realtime Database</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Konfigurasi Firebase
+      const firebaseConfig = {
+  apiKey: "AIzaSyAxYLlHDBC42NEX0jsmP3byq6PQllBJ_UM",
+  authDomain: "kumbung-jamur-f8932.firebaseapp.com",
+  databaseURL: "https://kumbung-jamur-f8932-default-rtdb.firebaseio.com",
+  projectId: "kumbung-jamur-f8932",
+  storageBucket: "kumbung-jamur-f8932.firebasestorage.app",
+  messagingSenderId: "1055491569431",
+  appId: "1:1055491569431:web:6e5cacfb2b0f0ff43e2952",
+  measurementId: "G-EDHRBPCQSL"
+};
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Variabel global untuk data
+        let allHistoryData = [];
+        let filteredHistoryData = [];
+        const itemsPerPage = 15;
+        let currentPage = 1;
+        let deleteAction = ''; // 'all' atau 'selected'
+        let selectedKeys = [];
+
+        // Referensi ke data riwayat
+        const historyRef = database.ref('kumbung_jamur/riwayat');
+
+        // Fungsi untuk memformat waktu
+        function formatTime(timestamp) {
+            if (!timestamp) return '-';
+            // Format: 2023-10-15_14-30-45
+            const [datePart, timePart] = timestamp.split('_');
+            if (!datePart || !timePart) return timestamp;
+            
+            const [year, month, day] = datePart.split('-');
+            const [hour, minute, second] = timePart.split('-');
+            
+            return `${day}/${month}/${year} ${hour}:${minute}`;
+        }
+
+        // Fungsi untuk menampilkan data dalam tabel
+        function renderTable(data, page = 1) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            const noDataMessage = document.getElementById('noDataMessage');
+            
+            if (data.length === 0) {
+                noDataMessage.style.display = 'block';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            } else {
+                noDataMessage.style.display = 'none';
+            }
+            
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = data.slice(startIndex, endIndex);
+            
+            pageData.forEach(item => {
+                const row = document.createElement('tr');
+                const key = item.key;
+                
+                row.innerHTML = `
+                    <td><input type="checkbox" class="data-checkbox" data-key="${key}"></td>
+                    <td>${formatTime(item.waktu)}</td>
+                    <td>${item.suhu || '-'}</td>
+                    <td>${item.kelembapan || '-'}</td>
+                    <td>${item.soil1 || '-'}</td>
+                    <td>${item.soil2 || '-'}</td>
+                    <td>${item.rata2_soil || '-'}</td>
+                    <td><span class="status-badge ${item.status_kipas === 'ON' ? 'on' : 'off'}">${item.status_kipas || '-'}</span></td>
+                    <td><span class="status-badge ${item.status_pompa === 'ON' ? 'on' : 'off'}">${item.status_pompa || '-'}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            renderPagination(data.length, page);
+        }
+
+        // Fungsi untuk membuat pagination
+        function renderPagination(totalItems, currentPage) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Tombol Previous
+            const prevButton = document.createElement('button');
+            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    renderTable(filteredHistoryData, currentPage - 1);
+                }
+            });
+            paginationDiv.appendChild(prevButton);
+            
+            // Tombol halaman
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = startPage + maxPagesToShow - 1;
+            
+            if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = currentPage === i ? 'active' : '';
+                pageButton.addEventListener('click', () => {
+                    renderTable(filteredHistoryData, i);
+                });
+                paginationDiv.appendChild(pageButton);
+            }
+            
+            // Tombol Next
+            const nextButton = document.createElement('button');
+            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    renderTable(filteredHistoryData, currentPage + 1);
+                }
+            });
+            paginationDiv.appendChild(nextButton);
+        }
+
+        // Fungsi untuk filter data berdasarkan tanggal
+        function filterByDate(days) {
+            const now = new Date();
+            const cutoffDate = new Date(now);
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+            
+            return allHistoryData.filter(item => {
+                if (!item.waktu) return false;
+                
+                // Format waktu: "2023-10-15_14-30-45"
+                const [datePart] = item.waktu.split('_');
+                const [year, month, day] = datePart.split('-');
+                const itemDate = new Date(year, month - 1, day);
+                
+                return itemDate >= cutoffDate;
+            });
+        }
+
+        // Fungsi untuk filter data berdasarkan range tanggal
+        function filterByDateRange(start, end) {
+            return allHistoryData.filter(item => {
+                if (!item.waktu) return false;
+                
+                const [datePart] = item.waktu.split('_');
+                const [year, month, day] = datePart.split('-');
+                const itemDate = new Date(year, month - 1, day);
+                
+                return itemDate >= new Date(start) && itemDate <= new Date(end);
+            });
+        }
+
+        // Fungsi untuk export data ke CSV
+        function exportToCSV(data) {
+            if (data.length === 0) {
+                alert('Tidak ada data untuk diexport!');
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Header CSV
+            const headers = [
+                'Waktu', 'Suhu (°C)', 'Kelembaban (%)', 
+                'Soil 1', 'Soil 2', 'Soil Rata-rata',
+                'Status Kipas', 'Status Pompa'
+            ];
+            csvContent += headers.join(',') + '\r\n';
+            
+            // Data CSV
+            data.forEach(item => {
+                const row = [
+                    `"${formatTime(item.waktu)}"`,
+                    item.suhu || '',
+                    item.kelembapan || '',
+                    item.soil1 || '',
+                    item.soil2 || '',
+                    item.rata2_soil || '',
+                    item.status_kipas || '',
+                    item.status_pompa || ''
+                ];
+                csvContent += row.join(',') + '\r\n';
+            });
+            
+            // Buat link download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "riwayat_kumbung_jamur.csv");
+            document.body.appendChild(link);
+            
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Fungsi untuk menghapus data
+        function deleteHistoryData(keys) {
+            const modal = document.getElementById('confirmationModal');
+            const modalMessage = document.getElementById('modalMessage');
+            
+            if (keys === 'all') {
+                deleteAction = 'all';
+                modalMessage.textContent = 'Apakah Anda yakin ingin menghapus SEMUA data riwayat? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data secara permanen.';
+                modal.style.display = 'flex';
+            } else if (keys.length > 0) {
+                deleteAction = 'selected';
+                selectedKeys = keys;
+                modalMessage.textContent = `Apakah Anda yakin ingin menghapus ${keys.length} data yang dipilih? Tindakan ini tidak dapat dibatalkan.`;
+                modal.style.display = 'flex';
+            } else {
+                alert('Tidak ada data yang dipilih untuk dihapus.');
+            }
+        }
+
+        // Fungsi untuk melakukan penghapusan setelah konfirmasi
+        function performDeletion() {
+            const modal = document.getElementById('confirmationModal');
+            
+            if (deleteAction === 'all') {
+                // Hapus semua data
+                historyRef.remove()
+                    .then(() => {
+                        alert('Semua data riwayat berhasil dihapus!');
+                        allHistoryData = [];
+                        filteredHistoryData = [];
+                        renderTable([]);
+                        modal.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error("Gagal menghapus data: ", error);
+                        alert('Gagal menghapus data: ' + error.message);
+                        modal.style.display = 'none';
+                    });
+            } else if (deleteAction === 'selected' && selectedKeys.length > 0) {
+                // Hapus data terpilih
+                const deletePromises = selectedKeys.map(key => {
+                    return database.ref(`kumbung_jamur/riwayat/${key}`).remove();
+                });
+                
+                Promise.all(deletePromises)
+                    .then(() => {
+                        alert(`${selectedKeys.length} data berhasil dihapus!`);
+                        
+                        // Perbarui data
+                        allHistoryData = allHistoryData.filter(item => !selectedKeys.includes(item.key));
+                        filteredHistoryData = filteredHistoryData.filter(item => !selectedKeys.includes(item.key));
+                        
+                        renderTable(filteredHistoryData, 1);
+                        modal.style.display = 'none';
+                        selectedKeys = [];
+                    })
+                    .catch(error => {
+                        console.error("Gagal menghapus data: ", error);
+                        alert('Gagal menghapus data: ' + error.message);
+                        modal.style.display = 'none';
+                    });
+            }
+        }
+
+        // Event listener saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default tanggal di filter
+            const today = new Date().toISOString().split('T')[0];
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const oneWeekAgoStr = oneWeekAgo.toISOString().split('T')[0];
+            
+            document.getElementById('startDate').value = oneWeekAgoStr;
+            document.getElementById('endDate').value = today;
+            
+            // Ambil data dari Firebase
+            historyRef.once('value').then(snapshot => {
+                const historyData = snapshot.val();
+                
+                // Simpan dengan key untuk referensi penghapusan
+                allHistoryData = Object.entries(historyData || {}).map(([key, value]) => {
+                    return { key, ...value };
+                });
+                
+                // Urutkan berdasarkan waktu (terbaru pertama)
+                allHistoryData.sort((a, b) => {
+                    if (!a.waktu || !b.waktu) return 0;
+                    return b.waktu.localeCompare(a.waktu);
+                });
+                
+                filteredHistoryData = [...allHistoryData];
+                renderTable(filteredHistoryData);
+            });
+            
+            // Event listener untuk filter
+            document.getElementById('applyFilter').addEventListener('click', () => {
+                const filterType = document.getElementById('dateFilter').value;
+                
+                if (filterType === 'all') {
+                    filteredHistoryData = [...allHistoryData];
+                } else if (filterType === 'custom') {
+                    const start = document.getElementById('startDate').value;
+                    const end = document.getElementById('endDate').value;
+                    
+                    if (!start || !end) {
+                        alert('Silakan pilih tanggal awal dan akhir!');
+                        return;
+                    }
+                    
+                    filteredHistoryData = filterByDateRange(start, end);
+                } else {
+                    filteredHistoryData = filterByDate(parseInt(filterType));
+                }
+                
+                currentPage = 1;
+                renderTable(filteredHistoryData, currentPage);
+            });
+            
+            // Event listener untuk export data
+            document.getElementById('exportData').addEventListener('click', () => {
+                exportToCSV(filteredHistoryData);
+            });
+            
+            // Event listener untuk hapus semua riwayat
+            document.getElementById('deleteHistory').addEventListener('click', () => {
+                deleteHistoryData('all');
+            });
+            
+            // Event listener untuk hapus data terpilih
+            document.getElementById('deleteSelected').addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.data-checkbox:checked');
+                const keysToDelete = Array.from(checkboxes).map(checkbox => checkbox.dataset.key);
+                deleteHistoryData(keysToDelete);
+            });
+            
+            // Event listener untuk select all
+            document.getElementById('selectAll').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.data-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+            
+            // Event listener untuk modal
+            document.getElementById('modalCancel').addEventListener('click', () => {
+                document.getElementById('confirmationModal').style.display = 'none';
+            });
+            
+            document.getElementById('modalConfirm').addEventListener('click', performDeletion);
+        });
+    </script>
+</body>
+</html>

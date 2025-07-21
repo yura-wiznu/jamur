@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Real-time - Kumbung Jamur</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        body { 
+            background-color: #f0f8ff; 
+            color: #333; 
+            line-height: 1.6; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        header { 
+            background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+            color: white; 
+            padding: 1rem 0; 
+            text-align: center; 
+            border-radius: 0 0 20px 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        nav { 
+            background-color: #ffffff; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        }
+        nav ul { 
+            display: flex; 
+            justify-content: center; 
+            list-style: none; 
+            padding: 15px; 
+        }
+        nav ul li { 
+            margin: 0 15px; 
+        }
+        nav ul li a { 
+            text-decoration: none; 
+            color: #2E7D32; 
+            font-weight: 600; 
+            padding: 10px 20px; 
+            border-radius: 30px; 
+            transition: all 0.3s ease; 
+        }
+        nav ul li a:hover, 
+        nav ul li a.active { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+        .card h3 { 
+            color: #2E7D32; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 10px; 
+        }
+        .card h3 i { 
+            font-size: 1.4rem; 
+        }
+        .chart-container { 
+            position: relative; 
+            height: 300px; 
+            margin-top: 20px; 
+        }
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+        }
+        .info-card { 
+            background: #f9f9f9; 
+            border-radius: 10px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .info-card .value { 
+            font-size: 2rem; 
+            font-weight: bold; 
+            color: #2E7D32; 
+            margin: 10px 0; 
+        }
+        .info-card .label { 
+            color: #666; 
+            text-align: center;
+        }
+        footer { 
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 20px; 
+            color: #666; 
+            border-top: 1px solid #ddd; 
+        }
+        .status-badge { 
+            display: inline-block; 
+            padding: 5px 15px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            color: white; 
+        }
+        .status-badge.on { 
+            background-color: #4CAF50; 
+        }
+        .status-badge.off { 
+            background-color: #f44336; 
+        }
+        .soil-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .soil-item {
+            text-align: center;
+            padding: 8px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .soil-value {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2E7D32;
+        }
+        .soil-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .avg-soil {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-heart-pulse"></i> Monitoring Real-time Kumbung Jamur</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Beranda</a></li>
+                <li><a href="status.html" class="active"><i class="fas fa-heart-pulse"></i> Status Real-time</a></li>
+                <li><a href="database.html"><i class="fas fa-database"></i> Riwayat Database</a></li>
+            </ul>
+        </nav>
+
+        <div class="card">
+            <h3><i class="fas fa-chart-line"></i> Grafik Parameter Utama</h3>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <h3><i class="fas fa-temperature-high"></i> Data Sensor</h3>
+                <div class="grid-container">
+                    <div class="info-card">
+                        <i class="fas fa-thermometer-half fa-2x"></i>
+                        <div class="value" id="suhuVal">-</div>
+                        <div class="label">Suhu Udara (°C)</div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-tint fa-2x"></i>
+                        <div class="value" id="kelembapanVal">-</div>
+                        <div class="label">Kelembaban (%)</div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-seedling fa-2x"></i>
+                        <div class="value" id="soil1Val">-</div>
+                        <div class="label">Soil Sensor 1</div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-seedling fa-2x"></i>
+                        <div class="value" id="soil2Val">-</div>
+                        <div class="label">Soil Sensor 2</div>
+                    </div>
+                    <!-- Tambahkan kartu untuk rata-rata tanah -->
+                    <div class="info-card" style="grid-column: span 2; background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+                        <i class="fas fa-calculator fa-2x"></i>
+                        <div class="value" id="rataSoilVal">-</div>
+                        <div class="label">Rata-rata Kelembaban Tanah</div>
+                        <div class="soil-info">
+                            <div class="soil-item">
+                                <div class="soil-value" id="soil1Mini">-</div>
+                                <div class="soil-label">Sensor 1</div>
+                            </div>
+                            <div class="soil-item">
+                                <div class="soil-value" id="soil2Mini">-</div>
+                                <div class="soil-label">Sensor 2</div>
+                            </div>
+                        </div>
+                        <div class="avg-soil" id="soilStatus">Status: -</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-cogs"></i> Status Kontrol</h3>
+                <div class="grid-container">
+                    <div class="info-card">
+                        <i class="fas fa-wind fa-2x"></i>
+                        <div class="value">
+                            <span id="kipasStatus" class="status-badge off">OFF</span>
+                        </div>
+                        <div class="label">Kipas Pendingin</div>
+                        <div class="label" style="margin-top: 10px; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> Menyala saat suhu > 30°C
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-faucet fa-2x"></i>
+                        <div class="value">
+                            <span id="pompaStatus" class="status-badge off">OFF</span>
+                        </div>
+                        <div class="label">Pompa Air</div>
+                        <div class="label" style="margin-top: 10px; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> Menyala saat tanah < 500
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-clock fa-2x"></i>
+                        <div class="value" id="updateTime">-</div>
+                        <div class="label">Terakhir Update</div>
+                    </div>
+                    <div class="info-card" style="background: #fff8e1;">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                        <div class="label" style="text-align: center; margin-top: 10px;">
+                            <strong>Soil Rata-rata</strong> adalah nilai tengah dari kedua sensor tanah
+                        </div>
+                        <div class="label" style="text-align: center; margin-top: 5px;">
+                            <i class="fas fa-leaf"></i> Nilai rendah = tanah kering
+                        </div>
+                        <div class="label" style="text-align: center;">
+                            <i class="fas fa-tint"></i> Nilai tinggi = tanah basah
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="container">
+        <p>IoT Kumbung Jamur &copy; 2023 | Update real-time setiap 5 detik</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Konfigurasi Firebase
+      const firebaseConfig = {
+  apiKey: "AIzaSyAxYLlHDBC42NEX0jsmP3byq6PQllBJ_UM",
+  authDomain: "kumbung-jamur-f8932.firebaseapp.com",
+  databaseURL: "https://kumbung-jamur-f8932-default-rtdb.firebaseio.com",
+  projectId: "kumbung-jamur-f8932",
+  storageBucket: "kumbung-jamur-f8932.firebasestorage.app",
+  messagingSenderId: "1055491569431",
+  appId: "1:1055491569431:web:6e5cacfb2b0f0ff43e2952",
+  measurementId: "G-EDHRBPCQSL"
+};
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Inisialisasi chart
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Suhu (°C)',
+                        data: [],
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Kelembaban (%)',
+                        data: [],
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Soil Rata-rata',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y2'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Waktu' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Suhu (°C)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Kelembaban (%)' },
+                        grid: { drawOnChartArea: false }
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Soil Value' },
+                        grid: { drawOnChartArea: false },
+                        min: 0,
+                        max: 1023
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // Data history untuk chart
+        const maxDataPoints = 20;
+        const chartData = {
+            times: [],
+            suhu: [],
+            kelembapan: [],
+            soil: []
+        };
+
+        // Referensi ke data real-time
+        const realtimeRef = database.ref('kumbung_jamur/realtime');
+
+        realtimeRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data) {
+                // Update nilai sensor
+                document.getElementById('suhuVal').textContent = data.suhu || '-';
+                document.getElementById('kelembapanVal').textContent = data.kelembapan || '-';
+                document.getElementById('soil1Val').textContent = data.soil1 || '-';
+                document.getElementById('soil2Val').textContent = data.soil2 || '-';
+                
+                // Update nilai tanah mini
+                document.getElementById('soil1Mini').textContent = data.soil1 || '-';
+                document.getElementById('soil2Mini').textContent = data.soil2 || '-';
+                
+                // Update rata-rata tanah
+                const rataSoil = data.rata2_soil || 0;
+                document.getElementById('rataSoilVal').textContent = rataSoil;
+                
+                // Update status tanah berdasarkan rata-rata
+                const soilStatus = document.getElementById('soilStatus');
+                if (rataSoil < 300) {
+                    soilStatus.textContent = "Status: Tanah Sangat Kering";
+                    soilStatus.style.backgroundColor = "#f44336";
+                } else if (rataSoil < 500) {
+                    soilStatus.textContent = "Status: Tanah Kering";
+                    soilStatus.style.backgroundColor = "#ff9800";
+                } else if (rataSoil < 700) {
+                    soilStatus.textContent = "Status: Tanah Lembab";
+                    soilStatus.style.backgroundColor = "#4CAF50";
+                } else {
+                    soilStatus.textContent = "Status: Tanah Basah";
+                    soilStatus.style.backgroundColor = "#2196F3";
+                }
+                
+                document.getElementById('updateTime').textContent = data.waktu || '-';
+                
+                // Update status perangkat
+                document.getElementById('kipasStatus').textContent = data.status_kipas;
+                document.getElementById('kipasStatus').className = `status-badge ${data.status_kipas === 'ON' ? 'on' : 'off'}`;
+                
+                document.getElementById('pompaStatus').textContent = data.status_pompa;
+                document.getElementById('pompaStatus').className = `status-badge ${data.status_pompa === 'ON' ? 'on' : 'off'}`;
+                
+                // Update chart
+                const now = new Date().toLocaleTimeString();
+                
+                // Tambahkan data baru
+                chartData.times.push(now);
+                chartData.suhu.push(data.suhu);
+                chartData.kelembapan.push(data.kelembapan);
+                chartData.soil.push(data.rata2_soil);
+                
+                // Batasi jumlah data
+                if (chartData.times.length > maxDataPoints) {
+                    chartData.times.shift();
+                    chartData.suhu.shift();
+                    chartData.kelembapan.shift();
+                    chartData.soil.shift();
+                }
+                
+                // Update chart
+                chart.data.labels = chartData.times;
+                chart.data.datasets[0].data = chartData.suhu;
+                chart.data.datasets[1].data = chartData.kelembapan;
+                chart.data.datasets[2].data = chartData.soil;
+                chart.update();
+            }
+        });
+    </script>
+</body>
+</html>
